@@ -1,12 +1,14 @@
-import { Table, Image, Button } from "react-bootstrap";
+import { Table, Image, Button, Row, Col, Form } from "react-bootstrap";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { useFilters } from "../hooks/useFilters";
 
 export const PurchaseHistory = () => {
   const [purchases, setPurchases] = useState([]);
   const [sortBy, setSortBy] = useState("date");
   const [sortOrder, setSortOrder] = useState("asc");
-   const navigate = useNavigate();
+  const { filters, setFilters, filterPurchases, clearFilters } = useFilters();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const stored = localStorage.getItem("purchases");
@@ -14,6 +16,14 @@ export const PurchaseHistory = () => {
       setPurchases(JSON.parse(stored));
     }
   }, []);
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const sortData = (data) => {
     const sorted = [...data].sort((a, b) => {
@@ -40,8 +50,6 @@ export const PurchaseHistory = () => {
     }
   };
 
-  const sortedPurchases = sortData(purchases);
-
   const renderSortIcon = (column) => {
     if (sortBy !== column) return null;
     return (
@@ -53,6 +61,8 @@ export const PurchaseHistory = () => {
     );
   };
 
+  const filteredPurchases = sortData(filterPurchases(purchases));
+
   return (
     <div className="p-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -61,8 +71,67 @@ export const PurchaseHistory = () => {
           Ver Gráfico
         </Button>
       </div>
-      {purchases.length === 0 ? (
-        <p>No hay compras registradas.</p>
+      {/* Filtros */}
+      <Form className="mb-3">
+        <Row className="g-2 align-items-end">
+          <Col md>
+            <Form.Label>Monto mínimo</Form.Label>
+            <Form.Control
+              type="number"
+              name="min"
+              value={filters.min}
+              onChange={handleFilterChange}
+              placeholder="Min"
+            />
+          </Col>
+          <Col md>
+            <Form.Label>Monto máximo</Form.Label>
+            <Form.Control
+              type="number"
+              name="max"
+              value={filters.max}
+              onChange={handleFilterChange}
+              placeholder="Max"
+            />
+          </Col>
+          <Col md>
+            <Form.Label>Nombre de producto</Form.Label>
+            <Form.Control
+              type="text"
+              name="product"
+              value={filters.product}
+              onChange={handleFilterChange}
+              placeholder="Producto"
+            />
+          </Col>
+          <Col md>
+            <Form.Label>Fecha desde</Form.Label>
+            <Form.Control
+              type="date"
+              name="from"
+              value={filters.from}
+              onChange={handleFilterChange}
+            />
+          </Col>
+          <Col md>
+            <Form.Label>Fecha hasta</Form.Label>
+            <Form.Control
+              type="date"
+              name="to"
+              value={filters.to}
+              onChange={handleFilterChange}
+            />
+          </Col>
+          {/* Aquí va el botón de borrar filtros */}
+          <Col xs="auto">
+            <Button variant="outline-secondary" onClick={clearFilters}>
+              Borrar filtros
+            </Button>
+          </Col>
+        </Row>
+      </Form>
+      {filteredPurchases.length === 0 ? (
+        <p className="text-center text-muted mt-4">Sin elementos</p>
       ) : (
         <Table bordered hover responsive>
           <thead className="table-light">
@@ -84,7 +153,7 @@ export const PurchaseHistory = () => {
             </tr>
           </thead>
           <tbody>
-            {sortedPurchases.map((purchase, index) => (
+            {filteredPurchases.map((purchase, index) => (
               <tr key={purchase.id}>
                 <td>{index + 1}</td>
                 <td>{purchase.date}</td>
@@ -117,20 +186,17 @@ export const PurchaseHistory = () => {
                           </td>
                           <td>{item.title}</td>
                           <td>{item.description}</td>
-                          <td>${parseFloat(item.price).toFixed(2)}</td>
+                          <td>{parseFloat(item.price).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
                           <td>{item.quantity}</td>
                           <td>
-                            $
-                            {(
-                              parseFloat(item.price) * parseInt(item.quantity)
-                            ).toFixed(2)}
+                            {(parseFloat(item.price) * parseInt(item.quantity)).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </Table>
                 </td>
-                <td>${parseFloat(purchase.total).toFixed(2)}</td>
+                <td>{parseFloat(purchase.total).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
               </tr>
             ))}
           </tbody>

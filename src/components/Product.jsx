@@ -29,7 +29,7 @@ export const Product = ({ product }) => {
                 <Badge bg="dark">{product.category}</Badge>
               </div>
             </div>
-            <Button variant="dark">
+            <Button variant="dark"onClick={addProduct}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
