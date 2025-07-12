@@ -2,6 +2,7 @@ import { Table, Image, Button, Row, Col, Form } from "react-bootstrap";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { useFilters } from "../hooks/useFilters";
+import PurchaseDetailModal from "../../components/PurchaseDetailModal";
 
 export const PurchaseHistory = () => {
   const [purchases, setPurchases] = useState([]);
@@ -9,6 +10,9 @@ export const PurchaseHistory = () => {
   const [sortOrder, setSortOrder] = useState("asc");
   const { filters, setFilters, filterPurchases, clearFilters } = useFilters();
   const navigate = useNavigate();
+
+  const [detailPurchase, setDetailPurchase] = useState(null);
+  const [showDetail, setShowDetail] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("purchases");
@@ -71,7 +75,6 @@ export const PurchaseHistory = () => {
           Ver Gráfico
         </Button>
       </div>
-      {/* Filtros */}
       <Form className="mb-3">
         <Row className="g-2 align-items-end">
           <Col md>
@@ -122,7 +125,6 @@ export const PurchaseHistory = () => {
               onChange={handleFilterChange}
             />
           </Col>
-          {/* Aquí va el botón de borrar filtros */}
           <Col xs="auto">
             <Button variant="outline-secondary" onClick={clearFilters}>
               Borrar filtros
@@ -150,6 +152,7 @@ export const PurchaseHistory = () => {
               >
                 Total {renderSortIcon("total")}
               </th>
+              <th>Acción</th>
             </tr>
           </thead>
           <tbody>
@@ -186,7 +189,9 @@ export const PurchaseHistory = () => {
                           </td>
                           <td>{item.title}</td>
                           <td>{item.description}</td>
-                          <td>{parseFloat(item.price).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
+                          <td>
+                            {parseFloat(item.price).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                          </td>
                           <td>{item.quantity}</td>
                           <td>
                             {(parseFloat(item.price) * parseInt(item.quantity)).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}
@@ -196,12 +201,31 @@ export const PurchaseHistory = () => {
                     </tbody>
                   </Table>
                 </td>
-                <td>{parseFloat(purchase.total).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
+                <td>
+                  {parseFloat(purchase.total).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                </td>
+                <td>
+                  <Button
+                    variant="info"
+                    size="sm"
+                    onClick={() => {
+                      setDetailPurchase(purchase);
+                      setShowDetail(true);
+                    }}
+                  >
+                    Ver detalle
+                  </Button>
+                </td>
               </tr>
             ))}
           </tbody>
         </Table>
       )}
+      <PurchaseDetailModal
+        show={showDetail}
+        onHide={() => setShowDetail(false)}
+        purchase={detailPurchase}
+      />
     </div>
   );
 };
